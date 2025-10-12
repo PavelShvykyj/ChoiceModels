@@ -1,21 +1,31 @@
 using Azure.Messaging.ServiceBus;
 using ChoiceLocalService.Services;
 using ChoiceLocalService.Services.Delegates;
-using TelegramLogger;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(new ConfigurationBuilder()
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+        .Build())
+    .Enrich.FromLogContext()
+    .CreateLogger();
+
+Log.Information("Starting ChoiceLocalService...");
 
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Logging.AddTelegramLogger(opt =>
-{
-    opt.BotToken = builder.Configuration["Telegram:BotToken"]; 
-    opt.ChatId = builder.Configuration["Telegram:ChatId"]; 
-    
-});
+
 
 builder.Services.AddWindowsService(options =>
 {
     options.ServiceName = "ChoiceLocalService";
 });
+
+builder.Logging.ClearProviders();
+
+
+builder.Logging.AddSerilog(Log.Logger);
+
 
 // Service Bus client
 builder.Services.AddSingleton(sp =>
@@ -28,7 +38,6 @@ builder.Services.AddSingleton(sp =>
 
 builder.Services.AddHttpClient<TelegramDelegate>(); 
 builder.Services.AddSingleton<HttpApiDelegate>();   
-builder.Services.AddSingleton<IMessageDelegate>(sp => sp.GetRequiredService<TelegramDelegate>());
 builder.Services.AddSingleton<IMessageDelegate>(sp => sp.GetRequiredService<HttpApiDelegate>());
 builder.Services.AddSingleton<QueueConsumer>();
 
@@ -42,7 +51,7 @@ builder.Services.AddHostedService(sp => sp.GetRequiredService<TelegramBotService
 builder.Services.AddHostedService(sp => sp.GetRequiredService<QueueConsumer>());
 
 
-
+Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 
 var host = builder.Build();
 host.Run();

@@ -1,5 +1,4 @@
 ﻿
-using ChoiceLocalService.Services.Delegates;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
