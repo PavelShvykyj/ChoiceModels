@@ -13,18 +13,15 @@ namespace ChoiceLocalService.Services
 
         private readonly HttpApiDelegate _apiManager;
         private readonly QueueConsumer _queue;
-        private readonly TelegramBotService _telegramService;
 
         public RuntimeSupervisor(
             IEnumerable<IMessageDelegate> delegates,
             HttpApiDelegate apiManager,
-            QueueConsumer queue,
-            TelegramBotService telegramService
+            QueueConsumer queue
             ) { 
         
             _apiManager = apiManager;
             _queue = queue;
-            _telegramService = telegramService;
 
             foreach (var item in delegates)
             {
@@ -63,7 +60,6 @@ namespace ChoiceLocalService.Services
         
             
             await this.StopProcessQueueAsync();
-            _telegramService.NotifyFailureAsync( $"messagr {Id} failed" );
 
         }
 

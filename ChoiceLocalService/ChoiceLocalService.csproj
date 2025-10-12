@@ -17,4 +17,10 @@
   <ItemGroup>
     <ProjectReference Include="..\ChoiceModels\ChoiceModels.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="TelegramLogger">
+      <HintPath>..\..\TelegramLogger\TelegramLogger\bin\Debug\net8.0\TelegramLogger.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>

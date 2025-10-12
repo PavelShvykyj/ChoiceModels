@@ -1,8 +1,16 @@
 using Azure.Messaging.ServiceBus;
 using ChoiceLocalService.Services;
 using ChoiceLocalService.Services.Delegates;
+using TelegramLogger;
 
 var builder = Host.CreateApplicationBuilder(args);
+
+builder.Logging.AddTelegramLogger(opt =>
+{
+    opt.BotToken = builder.Configuration["Telegram:BotToken"]; 
+    opt.ChatId = builder.Configuration["Telegram:ChatId"]; 
+    
+});
 
 builder.Services.AddWindowsService(options =>
 {
@@ -15,6 +23,7 @@ builder.Services.AddSingleton(sp =>
     var cs = builder.Configuration["ServiceBus:ConnectionString"];
     return new ServiceBusClient(cs);
 });
+
 
 
 builder.Services.AddHttpClient<TelegramDelegate>(); 
