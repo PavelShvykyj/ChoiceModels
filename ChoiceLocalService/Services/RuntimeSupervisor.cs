@@ -1,0 +1,87 @@
+﻿using Azure.Messaging.ServiceBus;
+using ChoiceLocalService.Services.Delegates;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ChoiceLocalService.Services
+{
+    public class RuntimeSupervisor
+    {
+
+        private readonly HttpApiDelegate _apiManager;
+        private readonly QueueConsumer _queue;
+        private readonly TelegramBotService _telegramService;
+
+        public RuntimeSupervisor(
+            IEnumerable<IMessageDelegate> delegates,
+            HttpApiDelegate apiManager,
+            QueueConsumer queue,
+            TelegramBotService telegramService
+            ) { 
+        
+            _apiManager = apiManager;
+            _queue = queue;
+            _telegramService = telegramService;
+
+            foreach (var item in delegates)
+            {
+                _queue.OnProcess += item.HandleAsync;
+
+            }
+            _queue.MessageFailure += OnMessageFailure;
+
+            _apiManager.SessionStateChanged += OnSessionStateChanged;
+        }
+
+        public bool IsQueueRunning { get => _queue.IsRunning;  }
+        public bool IsApiEnabled { get => _apiManager.IsEnabled; }
+
+
+        public async Task<bool> StopProcessQueueAsync() {
+            return await _queue.StopListeningAsync();
+        }
+
+
+        public async Task<bool>  StartProcessQueueAsync() {
+           return await _queue.StartListeningAsync();
+        
+        }
+
+        public async Task<bool> StopAPI() {
+           return await _apiManager.DisableAsync();
+        }
+
+        public async Task<bool> StartAPI()
+        {
+           return await _apiManager.EnableAsync();
+        }
+
+        private async Task OnMessageFailure(string Id) { 
+        
+            
+            await this.StopProcessQueueAsync();
+            _telegramService.NotifyFailureAsync( $"messagr {Id} failed" );
+
+        }
+
+        private async Task OnSessionStateChanged( bool state)
+        {
+            if (state & !_queue.IsRunning)
+            {
+                await _queue.StartListeningAsync();
+            }
+            else if (state & _queue.IsRunning)
+            {
+                return;
+            }
+            else
+            {
+                await _queue.StopListeningAsync();
+            }
+        }
+
+    }
+}
