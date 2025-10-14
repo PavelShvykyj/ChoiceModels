@@ -181,7 +181,7 @@ namespace ChoiceLocalService.Services.Delegates
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Error loggin on EnsureSessionAsync.");
+                _logger.LogWarning($"Error loggin on EnsureSessionAsync {ex.Message}");
                 return false;
             }
         }
