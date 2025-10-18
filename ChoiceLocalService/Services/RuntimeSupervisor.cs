@@ -82,7 +82,8 @@ namespace ChoiceLocalService.Services
             }
             else
             {
-                await _queue.StopListeningAsync();
+                _ = Task.Run(_queue.StopListeningAsync);
+                
             }
         }
 

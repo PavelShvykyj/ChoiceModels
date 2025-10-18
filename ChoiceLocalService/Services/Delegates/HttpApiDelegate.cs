@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Headers;
+using static System.Net.WebRequestMethods;
 
 namespace ChoiceLocalService.Services.Delegates
 {
@@ -93,7 +94,7 @@ namespace ChoiceLocalService.Services.Delegates
 
                 using var req = new HttpRequestMessage(HttpMethod.Post, _eventPath);
                 req.Headers.Authorization = _auth;
-                req.Headers.TryAddWithoutValidation("Cookie", $"IBsession={_sessionId}");
+                req.Headers.TryAddWithoutValidation("Cookie", $"ibsession={_sessionId}");
                 req.Content = new StringContent(messageBody, System.Text.Encoding.UTF8, "application/json");
 
                 var resp = await _http.SendAsync(req);
@@ -123,7 +124,7 @@ namespace ChoiceLocalService.Services.Delegates
                 }
                 using var outReq = new HttpRequestMessage(HttpMethod.Get, _pingPath);
                 outReq.Headers.Authorization = _auth;
-                outReq.Headers.TryAddWithoutValidation("IBSession", "stop");
+                outReq.Headers.TryAddWithoutValidation("IBSession", "finish");
                 outReq.Headers.TryAddWithoutValidation("Cookie", $"ibsession={_sessionId}");
                 await _http.SendAsync(outReq);
 
@@ -140,7 +141,7 @@ namespace ChoiceLocalService.Services.Delegates
                 using var startReq = new HttpRequestMessage(HttpMethod.Get, _pingPath);
                 startReq.Headers.Authorization = _auth;
                 startReq.Headers.TryAddWithoutValidation("IBSession", "start");
-
+                startReq.Headers.TryAddWithoutValidation("Cookie", "");
                 var resp = await _http.SendAsync(startReq);
                 if (!resp.IsSuccessStatusCode)
                 {
@@ -173,7 +174,7 @@ namespace ChoiceLocalService.Services.Delegates
                 var resp = await _http.SendAsync(pingReq);
                 if (!resp.IsSuccessStatusCode)
                 {
-                    _logger.LogError("Cannot start session: {code}", resp.StatusCode);
+                    _logger.LogError("Cannot ping session: {code}", resp.StatusCode);
                     return false;
                 }
                 return true;
@@ -181,7 +182,7 @@ namespace ChoiceLocalService.Services.Delegates
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Error loggin on EnsureSessionAsync {ex.Message}");
+                _logger.LogWarning($"Error ping  {ex.Message}");
                 return false;
             }
         }

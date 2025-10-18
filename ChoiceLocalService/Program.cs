@@ -37,7 +37,13 @@ builder.Services.AddSingleton(sp =>
 
 
 builder.Services.AddHttpClient<TelegramDelegate>(); 
-builder.Services.AddSingleton<HttpApiDelegate>();   
+builder.Services.AddHttpClient<HttpApiDelegate>()
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+    {
+        UseCookies = false 
+    });
+
+
 builder.Services.AddSingleton<IMessageDelegate>(sp => sp.GetRequiredService<HttpApiDelegate>());
 builder.Services.AddSingleton<QueueConsumer>();
 
