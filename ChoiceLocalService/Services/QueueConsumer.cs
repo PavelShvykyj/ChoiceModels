@@ -12,7 +12,7 @@ public class QueueConsumer : BackgroundService
     private CancellationTokenSource? _ctsQueueProcessing;
 
     public event Func<string, Task>? OnFailure;
-    public event Func<string, Task<bool>>? OnProcess;
+    public event Func<string,string, Task<bool>>? OnProcess;
 
     public bool IsRunning => _processor?.IsProcessing == true;
 
@@ -123,9 +123,9 @@ public class QueueConsumer : BackgroundService
         }
 
         bool handled = true;
-        foreach (Func<string, Task<bool>> handler in OnProcess.GetInvocationList())
+        foreach (Func<string, string, Task<bool>> handler in OnProcess.GetInvocationList())
         {
-            handled = handled && await handler(body);
+            handled = handled && await handler(body, args.Message.MessageId);
         }
 
         if (handled)

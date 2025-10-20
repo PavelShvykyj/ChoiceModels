@@ -19,7 +19,7 @@ public class TelegramDelegate : IMessageDelegate
         _chatId = config["Telegram:ChatId"]!;
     }
 
-    public async Task<bool> HandleAsync(string messageBody)
+    public async Task<bool> HandleAsync(string messageBody, string messageID)
     {
         try
         {
@@ -30,7 +30,7 @@ public class TelegramDelegate : IMessageDelegate
 
             if (order == null)
             {
-                _logger.LogWarning("[TelegramDelegate] Failed to deserialize message.");
+                _logger.LogWarning($"[TelegramDelegate] Failed to deserialize message {messageID}.");
                 return false;
             }
 

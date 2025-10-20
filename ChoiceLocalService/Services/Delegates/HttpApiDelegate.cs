@@ -70,7 +70,10 @@ namespace ChoiceLocalService.Services.Delegates
                 await LogoutAsync();
                 _logger.LogWarning("⛔ HttpApiDelegate DISABLED manually.");
                 _sessionId = null;
-                 await SessionStateChanged?.Invoke(false);
+                if (SessionStateChanged is not null)
+                {
+                    await SessionStateChanged.Invoke(false);
+                }
                 return true;
             }
             finally { _sessionLock.Release(); }
@@ -78,13 +81,13 @@ namespace ChoiceLocalService.Services.Delegates
 
         // === Основная логика ===
 
-        public async Task<bool> HandleAsync(string messageBody)
+        public async Task<bool> HandleAsync(string messageBody, string messageID)
         {
 
 
             try
             {
-                _logger.LogInformation("📨 Sending order to API (length={len})", messageBody.Length);
+                _logger.LogInformation("📨 Sending order to API (id={len})", messageID);
 
                 if (!await EnsureSessionAsync())
                 {
@@ -92,7 +95,7 @@ namespace ChoiceLocalService.Services.Delegates
                     return false;
                 }
 
-                using var req = new HttpRequestMessage(HttpMethod.Post, _eventPath);
+                using var req = new HttpRequestMessage(HttpMethod.Post, $"{_eventPath}/{messageID}");
                 req.Headers.Authorization = _auth;
                 req.Headers.TryAddWithoutValidation("Cookie", $"ibsession={_sessionId}");
                 req.Content = new StringContent(messageBody, System.Text.Encoding.UTF8, "application/json");
@@ -111,7 +114,10 @@ namespace ChoiceLocalService.Services.Delegates
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Exception during order processing.");
-                await SessionStateChanged?.Invoke(false);
+                if (SessionStateChanged is not null)
+                {
+                    await SessionStateChanged.Invoke(false);
+                }
                 return false;
             }
         }
@@ -211,7 +217,10 @@ namespace ChoiceLocalService.Services.Delegates
 
                 if (sessionState != result || _sessionId is null)
                 {    
-                    await SessionStateChanged?.Invoke( result);
+                    if (SessionStateChanged is not null)
+                    {
+                        await SessionStateChanged.Invoke(result);
+                    }
                 }
                 
                 return result;
